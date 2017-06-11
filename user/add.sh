@@ -193,6 +193,28 @@ while :; do echo
 	fi
 done
 
+while :; do echo
+	read -p "是否开启端口限速（y/n）： " iflimitspeed
+	if [[ ! $iflimitspeed =~ ^[y,n]$ ]]; then
+		echo "输入错误! 请输入y或者n!"
+	else
+		break
+	fi
+done
+
+if [[ $iflimitspeed == y ]]; then
+	while :; do echo
+		read -p "输入端口总限速(只需输入数字，单位：KB/s)： " us
+		if [[ "$us" =~ ^(-?|\+?)[0-9]+(\.?[0-9]+)?$ ]];then
+	   		break
+		else
+	   		echo 'Input Error!'
+		fi
+	done
+fi
+
+
+
 #Set Firewalls
 if [[ ${OS} =~ ^Ubuntu$|^Debian$ ]];then
 	iptables-restore < /etc/iptables.up.rules
@@ -220,7 +242,14 @@ fi
 #Run ShadowsocksR
 echo "用户添加成功！用户信息如下："
 cd /usr/local/shadowsocksr
-python mujson_mgr.py -a -u $uname -p $uport -k $upass -m $um1 -O $ux1 -o $uo1 -t $ut
+
+if [[ $iflimitspeed == y ]]; then
+	python mujson_mgr.py -a -u $uname -p $uport -k $upass -m $um1 -O $ux1 -o $uo1 -t $ut -S $us
+else
+	python mujson_mgr.py -a -u $uname -p $uport -k $upass -m $um1 -O $ux1 -o $uo1 -t $ut
+fi
+
+
 SSRPID=$(ps -ef|grep 'python server.py m' |grep -v grep |awk '{print $2}')
 if [[ $SSRPID == "" ]]; then
 	

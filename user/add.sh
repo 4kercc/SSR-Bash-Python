@@ -41,7 +41,7 @@ read -p "输入端口： " uport
 read -p "输入密码： " upass
 echo ""
 echo "加密方式"
-echo '1.aes-192-cfb'
+echo '1.none'
 echo '2.aes-128-cfb'
 echo '3.aes-256-cfb'
 echo '4.aes-128-ctr'
@@ -66,9 +66,10 @@ echo '2.auth_sha1_v4'
 echo '3.auth_aes128_md5'
 echo '4.auth_aes128_sha1'
 echo '5.verify_deflate'
+echo '6.auth_chain_a'
 while :; do echo
 	read -p "输入协议方式： " ux
-	if [[ ! $ux =~ ^[1-5]$ ]]; then
+	if [[ ! $ux =~ ^[1-6]$ ]]; then
 		echo "输入错误! 请输入正确的数字!"
 	else
 		break	
@@ -115,7 +116,7 @@ fi
 
 
 if [[ $um == 1 ]];then
-	um1="aes-192-cfb"
+	um1="none"
 fi
 if [[ $um == 2 ]];then
 	um1="aes-128-cfb"
@@ -157,6 +158,11 @@ fi
 if [[ $ux == 5 ]];then
 	ux1="verify_deflate"
 fi
+
+if [[ $ux == 6 ]];then
+	ux1="auth_chain_a"
+fi
+
 if [[ $uo == 1 ]];then
 	uo1="plain"
 fi

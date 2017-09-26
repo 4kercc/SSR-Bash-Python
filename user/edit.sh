@@ -37,7 +37,7 @@ echo ""
 while :; do echo
 	read -p "请选择： " lsid
 	if [[ ! $lsid =~ ^[1-2]$ ]]; then
-		echo "${CWARNING}输入错误! 请输入正确的数字!${CEND}"
+		echo "输入错误! 请输入正确的数字!"
 	else
 		break	
 	fi
@@ -61,11 +61,12 @@ echo "5.修改协议参数"
 echo "6.修改混淆参数"
 echo "7.修改流量"
 echo "8.修改端口限制"
+echo "9.修改总端口限速"
 
 while :; do echo
 	read -p "请选择： " ec
-	if [[ ! $ec =~ ^[1-8]$ ]]; then
-		echo "${CWARNING}输入错误! 请输入正确的数字!${CEND}"
+	if [[ ! $ec =~ ^[1-9]$ ]]; then
+		echo "输入错误! 请输入正确的数字!"
 	else
 		break	
 	fi
@@ -87,23 +88,26 @@ if [[ $ec == 1 ]];then
 fi
 if [[ $ec == 2 ]];then
 	echo "加密方式"
-	echo '1.aes-192-cfb'
+	echo '1.none'
 	echo '2.aes-128-cfb'
 	echo '3.aes-256-cfb'
 	echo '4.aes-128-ctr'
 	echo '5.aes-256-ctr'
 	echo '6.rc4-md5'
+	echo '7.chacha20'
+	echo '8.chacha20-ietf'
+	echo '9.salsa20'
 	while :; do echo
-	read -p "输入新加密方式： " um
-	if [[ ! $um =~ ^[1-6]$ ]]; then
-		echo "${CWARNING}输入错误! 请输入正确的数字!${CEND}"
-	else
-		break	
-	fi
+		read -p "输入新加密方式： " um
+		if [[ ! $um =~ ^[1-9]$ ]]; then
+			echo "输入错误! 请输入正确的数字!"
+		else
+			break	
+		fi
 	done
 	
 	if [[ $um == 1 ]];then
-		um1="aes-192-cfb"
+		um1="none"
 	fi
 	if [[ $um == 2 ]];then
 		um1="aes-128-cfb"
@@ -119,6 +123,15 @@ if [[ $ec == 2 ]];then
 	fi
 	if [[ $um == 6 ]];then
 		um1="rc4-md5"
+	fi
+	if [[ $um == 7 ]];then
+		um1="chacha20"
+	fi
+	if [[ $um == 8 ]];then
+		um1="chacha20-ietf"
+	fi
+	if [[ $um == 9 ]];then
+		um1="salsa20"
 	fi
 	cd /usr/local/shadowsocksr
 	if [[ $lsid == 1 ]];then
@@ -139,15 +152,27 @@ if [[ $ec == 3 ]];then
 	echo '3.auth_aes128_md5'
 	echo '4.auth_aes128_sha1'
 	echo '5.verify_deflate'
+	echo '6.auth_chain_a'
 	while :; do echo
 	read -p "输入协议方式： " ux
-	if [[ ! $ux =~ ^[1-5]$ ]]; then
-		echo "${CWARNING}输入错误! 请输入正确的数字!${CEND}"
+	if [[ ! $ux =~ ^[1-6]$ ]]; then
+		echo "输入错误! 请输入正确的数字!"
 	else
 		break	
 	fi
 	done
 	
+	if [[ $ux == 2 ]];then
+	while :; do echo
+		read -p "是否兼容原版协议（y/n）： " ifprotocolcompatible
+		if [[ ! $ifprotocolcompatible =~ ^[y,n]$ ]]; then
+			echo "输入错误! 请输入y或者n!"
+		else
+			break
+		fi
+	done
+	fi
+
 	if [[ $ux == 1 ]];then
 	ux1="origin"
 	fi
@@ -163,6 +188,14 @@ if [[ $ec == 3 ]];then
 	if [[ $ux == 5 ]];then
 		ux1="verify_deflate"
 	fi
+	if [[ $ux == 6 ]];then
+		ux1="auth_chain_a"
+	fi
+
+	if [[ $ifprotocolcompatible == y ]]; then
+		ux1=${ux1}"_compatible"
+	fi
+
 	cd /usr/local/shadowsocksr
 	if [[ $lsid == 1 ]];then
 		cd /usr/local/shadowsocksr
@@ -184,12 +217,23 @@ if [[ $ec == 4 ]];then
 	while :; do echo
 	read -p "输入混淆方式： " uo
 	if [[ ! $uo =~ ^[1-4]$ ]]; then
-		echo "${CWARNING}输入错误! 请输入正确的数字!${CEND}"
+		echo "输入错误! 请输入正确的数字!"
 	else
 		break	
 	fi
 	done
 	
+	if [[ $uo != 1 ]];then
+		while :; do echo
+			read -p "是否兼容原版混淆（y/n）： " ifobfscompatible
+			if [[ ! $ifobfscompatible =~ ^[y,n]$ ]]; then
+				echo "输入错误! 请输入y或者n!"
+			else
+				break
+			fi
+		done
+	fi
+
 	if [[ $uo == 1 ]];then
 		uo1="plain"
 	fi
@@ -202,6 +246,11 @@ if [[ $ec == 4 ]];then
 	if [[ $uo == 4 ]];then
 		uo1="tls1.2_ticket_auth"
 	fi
+	
+	if [[ $ifobfscompatible == y ]]; then
+		uo1=${uo1}"_compatible"
+	fi
+	
 	cd /usr/local/shadowsocksr
 	if [[ $lsid == 1 ]];then
 		cd /usr/local/shadowsocksr
@@ -242,20 +291,15 @@ if [[ $ec == 6 ]];then
 		echo "端口号为 $uid 的混淆参数已更改为 $uo2"
 	fi
 fi
-if [[ $ec == 7 ]];then
-	
-while :; do echo
-read -p "输入流量限制(只需输入数字，单位：GB)： " ut
-if [[ "$ut" =~ ^(-?|\+?)[0-9]+(\.?[0-9]+)?$ ]]
-then
-break
-else
-echo 'Input Error! Please Try Again!'
-fi
-done
-
-
-
+if [[ $ec == 7 ]];then	
+	while :; do echo
+		read -p "输入流量限制(只需输入数字，单位：GB)： " ut
+		if [[ "$ut" =~ ^(-?|\+?)[0-9]+(\.?[0-9]+)?$ ]];then
+			break
+		else
+			echo 'Input Error! Please Try Again!'
+		fi
+	done
 	cd /usr/local/shadowsocksr
 	if [[ $lsid == 1 ]];then
 		cd /usr/local/shadowsocksr
@@ -280,5 +324,27 @@ if [[ $ec == 8 ]];then
 		cd /usr/local/shadowsocksr
 		#python mujson_mgr.py -e -p $uid -f $ub
 		echo "此功能目前无法使用"
+	fi
+fi
+
+if [[ $ec == 9 ]];then
+	while :; do echo
+		read -p "输入端口总限速(只需输入数字，单位：KB/s)： " us
+		if [[ "$us" =~ ^(-?|\+?)[0-9]+(\.?[0-9]+)?$ ]];then
+	   		break
+		else
+	   		echo 'Input Error!'
+		fi
+	done
+	cd /usr/local/shadowsocksr
+	if [[ $lsid == 1 ]];then
+		cd /usr/local/shadowsocksr
+		python mujson_mgr.py -e -u $uid -S $us
+		echo "用户名为 $uid 的用户端口限速已修改为 $us KB/s"
+	fi
+	if [[ $lsid == 2 ]];then
+		cd /usr/local/shadowsocksr
+		python mujson_mgr.py -e -p $uid -S $us
+		echo "端口号为 $uid 的用户端口限速已修改为 $us KB/s"
 	fi
 fi
